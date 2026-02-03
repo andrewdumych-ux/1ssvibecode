@@ -1,64 +1,107 @@
-import Image from "next/image";
+"use client";
+
+import { useMemo, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function Home() {
+  const router = useRouter();
+  const [isEmailOpen, setIsEmailOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [touched, setTouched] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const emailError = useMemo(() => {
+    if (!touched) return "";
+    if (!email.trim()) return "Email is required.";
+    if (!EMAIL_REGEX.test(email.trim())) return "Enter a valid email address.";
+    return "";
+  }, [email, touched]);
+
+  const canContinue = !emailError && email.trim().length > 0;
+
+  const handleEmailContinue = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setTouched(true);
+    if (!canContinue) return;
+    setIsSubmitting(true);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    router.push(`/verify?email=${encodeURIComponent(email.trim())}`);
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            My name is andrew and i'm a software engineer/designer
+    <div className="relative min-h-screen overflow-hidden bg-[#0b0b0b] text-white">
+      <div className="pointer-events-none absolute -left-48 top-[-120px] h-[520px] w-[520px] rounded-full bg-[#3b1522] opacity-70 blur-[180px]" />
+      <div className="pointer-events-none absolute right-[-160px] top-[-140px] h-[520px] w-[520px] rounded-full bg-[#1a1a1a] opacity-95 blur-[190px]" />
+      <div className="pointer-events-none absolute bottom-[-240px] left-1/4 h-[560px] w-[560px] rounded-full bg-[#0b3b30] opacity-70 blur-[200px]" />
+
+      <main className="relative z-10 flex min-h-screen items-center justify-center px-6 py-16">
+        <section className="flex w-full max-w-[420px] flex-col items-center text-center">
+          <h1 className="text-[26px] font-semibold leading-[1.35] tracking-tight sm:text-[30px]">
+            Welcome to Andrew.
+            <br />
+            Build your universe here
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+
+          <div className="mt-10 flex w-full max-w-[360px] flex-col gap-4">
+            <button
+              type="button"
+              onClick={() => router.push("/auth/google")}
+              className="flex h-11 w-full items-center justify-center gap-3 rounded-full bg-white text-sm font-medium text-[#1a1a1a] shadow-[0_10px_30px_-20px_rgba(255,255,255,0.6)] transition hover:-translate-y-0.5"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#efefef] text-[11px] font-semibold text-[#1a1a1a]">
+                G
+              </span>
+              Continue with Google
+            </button>
+
+            <div className="flex items-center gap-4 text-[11px] uppercase tracking-[0.3em] text-white/50">
+              <span className="h-px w-full bg-white/10" />
+              or
+              <span className="h-px w-full bg-white/10" />
+            </div>
+
+            {!isEmailOpen && (
+              <button
+                type="button"
+                onClick={() => setIsEmailOpen(true)}
+                className="flex h-11 w-full items-center justify-center rounded-full bg-[#2a2a2a] text-sm font-medium text-white shadow-[0_6px_18px_-14px_rgba(0,0,0,0.8)] transition hover:-translate-y-0.5 hover:bg-[#333333]"
+              >
+                Continue with email
+              </button>
+            )}
+          </div>
+
+          {isEmailOpen && (
+            <form
+              onSubmit={handleEmailContinue}
+              className="mt-5 w-full max-w-[360px] space-y-3 text-left"
             >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+              <input
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                onBlur={() => setTouched(true)}
+                placeholder="Enter your email"
+                className="h-11 w-full rounded-xl border border-white/10 bg-[#1c1c1c] px-4 text-sm text-white placeholder:text-white/35 focus:border-white/40 focus:outline-none"
+                required
+              />
+              {emailError ? (
+                <p className="text-xs font-medium text-[#fca5a5]">
+                  {emailError}
+                </p>
+              ) : null}
+              <button
+                type="submit"
+                disabled={!canContinue || isSubmitting}
+                className="flex h-11 w-full items-center justify-center rounded-xl bg-[#2a2a2a] text-sm font-semibold text-white shadow-[0_10px_30px_-20px_rgba(0,0,0,0.7)] transition hover:-translate-y-0.5 hover:bg-[#333333] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isSubmitting ? "Sending..." : "Continue"}
+              </button>
+            </form>
+          )}
+        </section>
       </main>
     </div>
   );
